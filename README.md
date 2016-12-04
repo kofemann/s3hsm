@@ -37,6 +37,15 @@ $ s3hsm remove -uri=s3://data/0000000635D5968A4DD89E29C242185B2D82 \
     -s3endpoint=127.0.0.1:9000
 ````
 
+Building from sources
+=====================
+
+```
+$ go get -u github.com/kofemann/s3hsm
+$ cd $GOPATH
+$ go build
+```
+
 License:
 --------
 
