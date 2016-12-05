@@ -21,10 +21,25 @@ const DATA_MIME_TYPE = "binary/octet-stream"
 var DEBUG = log.New(os.Stderr, "[DEBUG] ", log.LstdFlags)
 
 func usageAndExit(app string, errcode int) {
-	fmt.Printf("Usage:\n")
-	fmt.Printf("    %s put <pnfsid> <path> [-key[=value]...]\n", app)
-	fmt.Printf("    %s get <pnfsid> <path> -uri=<uri>[-key[=value]...]\n", app)
-	fmt.Printf("    %s remove -uri=<uri> [-key[=value]...]\n", app)
+	fmt.Println()
+	fmt.Printf(" %s - use S3 and HSM for dCache", app)
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("Usage:")
+	fmt.Printf("    $ %s put <pnfsid> <path> [-key[=value]...]\n", app)
+	fmt.Printf("    $ %s get <pnfsid> <path> -uri=<uri>[-key[=value]...]\n", app)
+	fmt.Printf("    $ %s remove -uri=<uri> [-key[=value]...]\n", app)
+	fmt.Println()
+	fmt.Println("Options:")
+	fmt.Println("    -debuglog=<filename>    : log debug informaion into specified file.")
+	fmt.Println("    -s3config=<filename>    : path to is3 endpoint config file.")
+	fmt.Println("    -s3endpoint=<host:port> : S3 endpoint's host and port")
+	fmt.Println("    -s3usessl               : use https protocol when talking to S3 endpoint.")
+	fmt.Println("    -s3bucket=<bucket>      : name of S3 bucket to use.")
+	fmt.Println("    -s3key=<key>            : S3 AccessKey, overwrites the value from config file.")
+	fmt.Println("    -s3secret=<secret>      : S3 SecretAccessKey, overwrites the value from config file.")
+	fmt.Println("    -enc                    : Encrypt data with a random key before sending to S3 storage.")
+
 	os.Exit(errcode)
 }
 
@@ -176,8 +191,9 @@ func doRemove(ci *util.ConnectionParams, opts map[string]string) {
 
 func main() {
 
+	appName := path.Base(os.Args[0])
 	if len(os.Args) < 2 {
-		usageAndExit(os.Args[0], 1)
+		usageAndExit(appName, 1)
 	}
 
 	action := os.Args[1]
@@ -203,7 +219,7 @@ func main() {
 	case "remove":
 		doRemove(connectionInfo, opts)
 	default:
-		usageAndExit(os.Args[0], 1)
+		usageAndExit(appName, 1)
 	}
 
 	os.Exit(0)
