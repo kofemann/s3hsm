@@ -1,6 +1,26 @@
 Use S3 as an HSM for dcache
 ======================================
 
+Usage
+-----
+```
+ s3hsm - use S3 and HSM for dCache
+
+Usage:
+    $ s3hsm put <pnfsid> <path> [-key[=value]...]
+    $ s3hsm get <pnfsid> <path> -uri=<uri>[-key[=value]...]
+    $ s3hsm remove -uri=<uri> [-key[=value]...]
+
+Options:
+    -debuglog=<filename>    : log debug informaion into specified file.
+    -s3config=<filename>    : path to is3 endpoint config file.
+    -s3endpoint=<host:port> : S3 endpoint's host and port
+    -s3usessl               : use https protocol when talking to S3 endpoint.
+    -s3bucket=<bucket>      : name of S3 bucket to use.
+    -s3key=<key>            : S3 AccessKey, overwrites the value from config file.
+    -s3secret=<secret>      : S3 SecretAccessKey, overwrites the value from config file.
+    -enc                    : Encrypt data with a random key before sending to S3 storage.
+```
 
 Flush file to s3
 -----------------
