@@ -18,6 +18,8 @@ import (
 
 const DATA_MIME_TYPE = "binary/octet-stream"
 
+var DEBUG = log.New(os.Stderr, "[DEBUG] ", log.LstdFlags)
+
 func usageAndExit(app string, errcode int) {
 	fmt.Printf("Usage:\n")
 	fmt.Printf("    %s put <pnfsid> <path> [-key[=value]...]\n", app)
@@ -72,10 +74,12 @@ func doPut(ci *util.ConnectionParams, objectName string, filePath string, opts m
 	}
 
 	bucketName := opts["s3bucket"]
+	start := time.Now()
 	_, err = minioClient.PutObject(bucketName, objectName, reader, DATA_MIME_TYPE)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	DEBUG.Printf("PUT of %s done in %v\n", objectName, time.Since(start))
 
 	u := url.URL{Scheme: "s3", Host: "s3", Path: path.Join(bucketName, objectName)}
 	if len(key) > 0 {
@@ -128,6 +132,7 @@ func doGet(ci *util.ConnectionParams, filePath string, opts map[string]string) {
 	bucketName := path.Dir(u.Path)[1:] // strip leading slash
 	objectName := path.Base(u.Path)
 
+	start := time.Now()
 	object, err := minioClient.GetObject(bucketName, objectName)
 	if err != nil {
 		log.Fatalf("Failed to get object back: %v\n", err)
@@ -137,6 +142,7 @@ func doGet(ci *util.ConnectionParams, filePath string, opts map[string]string) {
 		log.Fatalf("Failed to write localy: %v\n", err)
 	}
 
+	DEBUG.Printf("GET of %s done in %v\n", objectName, time.Since(start))
 }
 
 func doRemove(ci *util.ConnectionParams, opts map[string]string) {
@@ -159,11 +165,13 @@ func doRemove(ci *util.ConnectionParams, opts map[string]string) {
 	bucketName := path.Dir(u.Path)[1:] // strip leading slash
 	objectName := path.Base(u.Path)
 
+	start := time.Now()
 	err = minioClient.RemoveObject(bucketName, objectName)
 	if err != nil {
 		log.Fatalf("Failed to remove object: %v\n", err)
 	}
 
+	DEBUG.Printf("REMOVE of %s done in %v\n", objectName, time.Since(start))
 }
 
 func main() {
@@ -174,6 +182,17 @@ func main() {
 
 	action := os.Args[1]
 	opts := util.Options2Map(os.Args)
+
+	logFile, ok := opts["debuglog"]
+	if ok {
+		f, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
+		if err != nil {
+			log.Fatalf("Failed to open log file: %v", err)
+		}
+		defer f.Close()
+		DEBUG.SetOutput(f)
+	}
+
 	connectionInfo := util.GetConnectionParams(opts)
 
 	switch action {
