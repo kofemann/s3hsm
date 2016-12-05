@@ -37,6 +37,21 @@ $ s3hsm remove -uri=s3://data/0000000635D5968A4DD89E29C242185B2D82 \
     -s3endpoint=127.0.0.1:9000
 ````
 
+To simplify command line usage, a config file with connection properties can be provides:
+```
+$ s3hsm put 0000000635D5968A4DD89E29C242185B2D82 /dcache/pool1/0000000635D5968A4DD89E29C242185B2D82 \
+    -s3bucket=data \
+    -s3config=/path/to/config.yaml
+```
+The config file as a very simple format:
+```yaml
+endpoint: 127.0.0.1:9000
+access_key: ACCESS_KEY
+secret_key: SECRET_KEY
+ssl: false
+enc: false
+```
+
 Building from sources
 =====================
 

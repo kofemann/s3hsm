@@ -1,0 +1,5 @@
+endpoint: 127.0.0.1:9000
+access_key: xxxxxxxxxxxxxxxx
+secret_key: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+ssl: false
+enc: false
