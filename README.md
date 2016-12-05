@@ -45,11 +45,12 @@ $ s3hsm put 0000000635D5968A4DD89E29C242185B2D82 /dcache/pool1/0000000635D5968A4
 ```
 The config file as a very simple format:
 ```yaml
-endpoint: 127.0.0.1:9000
-access_key: ACCESS_KEY
-secret_key: SECRET_KEY
-ssl: false
-enc: false
+s3:
+  endpoint: 127.0.0.1:9000
+  access_key: ACCESS_KEY
+  secret_key: SECRET_KEY
+  ssl: false
+  enc: false
 ```
 
 Building from sources
