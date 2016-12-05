@@ -13,7 +13,7 @@ $ s3hsm put 0000000635D5968A4DD89E29C242185B2D82 /dcache/pool1/0000000635D5968A4
 ```
 The script will return back location uri:
 ```
-s3://data/0000000635D5968A4DD89E29C242185B2D82
+s3://s3/data/0000000635D5968A4DD89E29C242185B2D82
 ```
 
 Restore file from s3
