@@ -4,6 +4,7 @@ package main
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"encoding/hex"
 	"fmt"
 	util "github.com/kofemann/s3hsm/util"
 	"github.com/minio/minio-go"
@@ -17,6 +18,7 @@ import (
 )
 
 const DATA_MIME_TYPE = "binary/octet-stream"
+const KEY_SIZE = 32 // 256bit
 
 var DEBUG = log.New(os.Stderr, "[DEBUG] ", log.LstdFlags)
 
@@ -43,21 +45,6 @@ func usageAndExit(app string, errcode int) {
 	os.Exit(errcode)
 }
 
-const charset = "abcdefghijklmnopqrstuvwxyz" +
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-func StringWithCharset(length int, charset string) string {
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[rand.Intn(len(charset))]
-	}
-	return string(b)
-}
-
-func String(length int) string {
-	return StringWithCharset(length, charset)
-}
-
 func doPut(ci *util.ConnectionParams, objectName string, filePath string, opts map[string]string) {
 	minioClient, err := minio.New(ci.Endpoint, ci.AccessKey, ci.SecretKey, ci.UseSSL)
 	if err != nil {
@@ -65,7 +52,7 @@ func doPut(ci *util.ConnectionParams, objectName string, filePath string, opts m
 	}
 
 	var reader io.Reader
-	key := ""
+	var key []byte
 
 	inFile, err := os.Open(filePath)
 	if err != nil {
@@ -75,8 +62,13 @@ func doPut(ci *util.ConnectionParams, objectName string, filePath string, opts m
 
 	if ci.UseEnc {
 		rand.Seed(time.Now().UnixNano())
-		key = String(24)
-		block, err := aes.NewCipher([]byte(key))
+		key = make([]byte, KEY_SIZE)
+		_, err = rand.Read(key)
+		if err != nil {
+			log.Fatalf("Failed to generate random key: %v\n", err)
+		}
+
+		block, err := aes.NewCipher(key)
 		if err != nil {
 			log.Fatalf("Failed to initialize encryption key: %v\n", err)
 		}
@@ -99,7 +91,8 @@ func doPut(ci *util.ConnectionParams, objectName string, filePath string, opts m
 	u := url.URL{Scheme: "s3", Host: "s3", Path: path.Join(bucketName, objectName)}
 	if len(key) > 0 {
 		q := u.Query()
-		q.Set("enc", key)
+		q.Set("etype", "aes")
+		q.Set("ekey", hex.EncodeToString(key))
 		u.RawQuery = q.Encode()
 	}
 	fmt.Println(u.String())
@@ -122,7 +115,8 @@ func doGet(ci *util.ConnectionParams, filePath string, opts map[string]string) {
 		log.Fatalf("Failed to parse URI %s:  %v\n", s3uri, err)
 	}
 	q := u.Query()
-	key := q.Get("enc")
+	key := q.Get("ekey")
+	etype := q.Get("etype")
 
 	outFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
@@ -132,7 +126,16 @@ func doGet(ci *util.ConnectionParams, filePath string, opts map[string]string) {
 
 	var writer io.Writer
 	if len(key) > 0 {
-		block, err := aes.NewCipher([]byte(key))
+		if etype != "aes" {
+			log.Fatalf("Unsupported encryption type: %s\n", etype)
+		}
+
+		rawKey, err := hex.DecodeString(key)
+		if err != nil {
+			log.Fatalf("Failed to decode encryption key: %v\n", err)
+		}
+
+		block, err := aes.NewCipher(rawKey)
 		if err != nil {
 			log.Fatalf("Failed to initialize encryption key: %v\n", err)
 		}
