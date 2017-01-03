@@ -73,6 +73,7 @@ func doPut(ci *util.ConnectionParams, objectName string, filePath string, opts m
 			log.Fatalf("Failed to initialize encryption key: %v\n", err)
 		}
 
+		// as we use a key per file, the IV can be zero.
 		var iv [aes.BlockSize]byte
 		stream := cipher.NewOFB(block, iv[:])
 		reader = &cipher.StreamReader{S: stream, R: inFile}
@@ -140,6 +141,7 @@ func doGet(ci *util.ConnectionParams, filePath string, opts map[string]string) {
 			log.Fatalf("Failed to initialize encryption key: %v\n", err)
 		}
 
+		// as we use a key per file, the IV can be zero.
 		var iv [aes.BlockSize]byte
 		stream := cipher.NewOFB(block, iv[:])
 		writer = &cipher.StreamWriter{S: stream, W: outFile}
