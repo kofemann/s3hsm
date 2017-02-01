@@ -61,7 +61,7 @@ To simplify command line usage, a config file with connection properties can be 
 ```
 $ s3hsm put 0000000635D5968A4DD89E29C242185B2D82 /dcache/pool1/0000000635D5968A4DD89E29C242185B2D82 \
     -s3bucket=data \
-    -s3config=/path/to/config.yaml
+    -s3config=/path/to/config.yml
 ```
 The config file as a very simple format:
 ```yaml
