@@ -205,7 +205,7 @@ func connect(ci *util.ConnectionParams) (*minio.Client, error) {
 	case 4:
 		client, err = minio.NewV4(ci.Endpoint, ci.AccessKey, ci.SecretKey, ci.UseSSL)
 	default:
-		log.Fatal("Unsupported protocol version")
+		log.Fatalf("Unsupported protocol version [%d]\n", ci.S3Version)
 	}
 
 	if err != nil {

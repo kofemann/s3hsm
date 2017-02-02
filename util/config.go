@@ -5,6 +5,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
+	"strconv"
 )
 
 type Conf struct {
@@ -18,7 +19,7 @@ type ConnectionParams struct {
 	UseSSL    bool   `yaml:"ssl"`
 	UseEnc    bool   `yaml:"enc"`
 	Trace     bool   `yaml:"trace"`
-	S3Version uint8  `yaml:"s3version"`
+	S3Version uint64 `yaml:"s3version"`
 }
 
 func GetConnectionParams(opts map[string]string) *ConnectionParams {
@@ -65,8 +66,21 @@ func GetConnectionParams(opts map[string]string) *ConnectionParams {
 
 	_, ok = opts["enc"]
 	if ok {
-
 		params.UseEnc = true
+	}
+
+	_, ok = opts["trace"]
+	if ok {
+		params.Trace = true
+	}
+
+	_, ok = opts["s3version"]
+	if ok {
+		version, err := strconv.ParseUint(opts["s3version"], 10, 8)
+		if err != nil {
+			log.Fatalf("Invalid value for s3version: %v\n", err)
+		}
+		params.S3Version = version
 	}
 
 	return &params
