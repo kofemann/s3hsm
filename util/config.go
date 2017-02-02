@@ -17,6 +17,8 @@ type ConnectionParams struct {
 	SecretKey string `yaml:"secret_key"`
 	UseSSL    bool   `yaml:"ssl"`
 	UseEnc    bool   `yaml:"enc"`
+	Trace     bool   `yaml:"trace"`
+	S3Version uint8  `yaml:"s3version"`
 }
 
 func GetConnectionParams(opts map[string]string) *ConnectionParams {

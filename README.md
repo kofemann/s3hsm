@@ -71,6 +71,8 @@ s3:
   secret_key: SECRET_KEY
   ssl: false
   enc: false
+  trace: false
+  s3version: 4
 ```
 
 Building from sources

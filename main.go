@@ -46,7 +46,7 @@ func usageAndExit(app string, errcode int) {
 }
 
 func doPut(ci *util.ConnectionParams, objectName string, filePath string, opts map[string]string) {
-	minioClient, err := minio.New(ci.Endpoint, ci.AccessKey, ci.SecretKey, ci.UseSSL)
+	minioClient, err := connect(ci)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -101,7 +101,7 @@ func doPut(ci *util.ConnectionParams, objectName string, filePath string, opts m
 
 func doGet(ci *util.ConnectionParams, filePath string, opts map[string]string) {
 
-	minioClient, err := minio.New(ci.Endpoint, ci.AccessKey, ci.SecretKey, ci.UseSSL)
+	minioClient, err := connect(ci)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -167,7 +167,7 @@ func doGet(ci *util.ConnectionParams, filePath string, opts map[string]string) {
 
 func doRemove(ci *util.ConnectionParams, opts map[string]string) {
 
-	minioClient, err := minio.New(ci.Endpoint, ci.AccessKey, ci.SecretKey, ci.UseSSL)
+	minioClient, err := connect(ci)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -192,6 +192,33 @@ func doRemove(ci *util.ConnectionParams, opts map[string]string) {
 	}
 
 	DEBUG.Printf("REMOVE of %s done in %v\n", objectName, time.Since(start))
+}
+
+func connect(ci *util.ConnectionParams) (*minio.Client, error) {
+
+	var client *minio.Client
+	var err error
+
+	switch ci.S3Version {
+	case 2:
+		client, err = minio.NewV2(ci.Endpoint, ci.AccessKey, ci.SecretKey, ci.UseSSL)
+	case 4:
+		client, err = minio.NewV4(ci.Endpoint, ci.AccessKey, ci.SecretKey, ci.UseSSL)
+	default:
+		log.Fatal("Unsupported protocol version")
+	}
+
+	if err != nil {
+		return client, err
+	}
+
+	if ci.Trace {
+		client.TraceOn(nil)
+	} else {
+		client.TraceOff()
+	}
+
+	return client, nil
 }
 
 func main() {

@@ -4,3 +4,5 @@ s3:
   secret_key: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   ssl: false
   enc: false
+  trace: true
+  s3version: 4
