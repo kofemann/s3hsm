@@ -6,3 +6,7 @@ s3:
   enc: false
   trace: true
   s3version: 4
+
+ hsm:
+  instance: amazon-s3
+  type: osm

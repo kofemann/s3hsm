@@ -9,7 +9,8 @@ import (
 )
 
 type Conf struct {
-	S3 ConnectionParams
+	S3  ConnectionParams
+	Hsm HsmInfo
 }
 
 type ConnectionParams struct {
@@ -22,7 +23,12 @@ type ConnectionParams struct {
 	S3Version uint64 `yaml:"s3version"`
 }
 
-func GetConnectionParams(opts map[string]string) *ConnectionParams {
+type HsmInfo struct {
+	Instance string `yaml:"instance"`
+	Type     string `yaml:"type"`
+}
+
+func GetConfig(opts map[string]string) *Conf {
 
 	conf := &Conf{}
 
@@ -83,6 +89,5 @@ func GetConnectionParams(opts map[string]string) *ConnectionParams {
 		params.S3Version = version
 	}
 
-	return &params
-
+	return conf
 }

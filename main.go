@@ -45,7 +45,7 @@ func usageAndExit(app string, errcode int) {
 	os.Exit(errcode)
 }
 
-func doPut(ci *util.ConnectionParams, objectName string, filePath string, opts map[string]string) {
+func doPut(ci *util.ConnectionParams, hsm *util.HsmInfo, objectName string, filePath string, opts map[string]string) {
 	minioClient, err := connect(ci)
 	if err != nil {
 		log.Fatalln(err)
@@ -89,7 +89,7 @@ func doPut(ci *util.ConnectionParams, objectName string, filePath string, opts m
 	}
 	DEBUG.Printf("PUT of %s done in %v\n", objectName, time.Since(start))
 
-	u := url.URL{Scheme: "s3", Host: "s3", Path: path.Join(bucketName, objectName)}
+	u := url.URL{Scheme: hsm.Type, Host: hsm.Instance, Path: path.Join(bucketName, objectName)}
 	if len(key) > 0 {
 		q := u.Query()
 		q.Set("etype", "aes")
@@ -241,13 +241,15 @@ func main() {
 		DEBUG.SetOutput(f)
 	}
 
-	connectionInfo := util.GetConnectionParams(opts)
+	config := util.GetConfig(opts)
+	connectionInfo := &config.S3
+	hsmInfo := &config.Hsm
 
 	switch action {
 	case "get":
 		doGet(connectionInfo, os.Args[3], opts)
 	case "put":
-		doPut(connectionInfo, os.Args[2], os.Args[3], opts)
+		doPut(connectionInfo, hsmInfo, os.Args[2], os.Args[3], opts)
 	case "remove":
 		doRemove(connectionInfo, opts)
 	default:
