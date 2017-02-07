@@ -73,6 +73,10 @@ s3:
   enc: false
   trace: false
   s3version: 4
+
+hsm:
+  instance: amazon-s3
+  type: osm
 ```
 
 Building from sources
