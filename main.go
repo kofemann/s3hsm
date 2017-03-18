@@ -6,8 +6,12 @@ import (
 	"crypto/cipher"
 	"encoding/hex"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	util "github.com/kofemann/s3hsm/util"
-	"github.com/minio/minio-go"
 	"io"
 	"log"
 	"math/rand"
@@ -46,7 +50,7 @@ func usageAndExit(app string, errcode int) {
 }
 
 func doPut(ci *util.ConnectionParams, hsm *util.HsmInfo, objectName string, filePath string, opts map[string]string) {
-	minioClient, err := connect(ci)
+	s3client, err := connect(ci)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -82,8 +86,18 @@ func doPut(ci *util.ConnectionParams, hsm *util.HsmInfo, objectName string, file
 	}
 
 	bucketName := opts["s3bucket"]
+
+	uploader := s3manager.NewUploaderWithClient(s3client)
+
 	start := time.Now()
-	_, err = minioClient.PutObject(bucketName, objectName, reader, DATA_MIME_TYPE)
+
+	_, err = uploader.Upload(&s3manager.UploadInput{
+		Bucket:      aws.String(bucketName),
+		Key:         aws.String(objectName),
+		ContentType: aws.String(DATA_MIME_TYPE),
+		Body:        reader,
+	})
+
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -101,7 +115,7 @@ func doPut(ci *util.ConnectionParams, hsm *util.HsmInfo, objectName string, file
 
 func doGet(ci *util.ConnectionParams, filePath string, opts map[string]string) {
 
-	minioClient, err := connect(ci)
+	s3client, err := connect(ci)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -153,12 +167,17 @@ func doGet(ci *util.ConnectionParams, filePath string, opts map[string]string) {
 	objectName := path.Base(u.Path)
 
 	start := time.Now()
-	object, err := minioClient.GetObject(bucketName, objectName)
+	resp, err := s3client.GetObject(
+		&s3.GetObjectInput{
+			Bucket: aws.String(bucketName),
+			Key:    aws.String(objectName),
+		})
+
 	if err != nil {
 		log.Fatalf("Failed to get object back: %v\n", err)
 	}
 
-	if _, err = io.Copy(writer, object); err != nil {
+	if _, err = io.Copy(writer, resp.Body); err != nil {
 		log.Fatalf("Failed to write localy: %v\n", err)
 	}
 
@@ -167,7 +186,7 @@ func doGet(ci *util.ConnectionParams, filePath string, opts map[string]string) {
 
 func doRemove(ci *util.ConnectionParams, opts map[string]string) {
 
-	minioClient, err := connect(ci)
+	s3client, err := connect(ci)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -186,7 +205,11 @@ func doRemove(ci *util.ConnectionParams, opts map[string]string) {
 	objectName := path.Base(u.Path)
 
 	start := time.Now()
-	err = minioClient.RemoveObject(bucketName, objectName)
+	_, err = s3client.DeleteObject(
+		&s3.DeleteObjectInput{
+			Bucket: aws.String(bucketName),
+			Key:    aws.String(objectName),
+		})
 	if err != nil {
 		log.Fatalf("Failed to remove object: %v\n", err)
 	}
@@ -194,31 +217,29 @@ func doRemove(ci *util.ConnectionParams, opts map[string]string) {
 	DEBUG.Printf("REMOVE of %s done in %v\n", objectName, time.Since(start))
 }
 
-func connect(ci *util.ConnectionParams) (*minio.Client, error) {
+func connect(ci *util.ConnectionParams) (*s3.S3, error) {
 
-	var client *minio.Client
-	var err error
-
-	switch ci.S3Version {
-	case 2:
-		client, err = minio.NewV2(ci.Endpoint, ci.AccessKey, ci.SecretKey, ci.UseSSL)
-	case 4:
-		client, err = minio.NewV4(ci.Endpoint, ci.AccessKey, ci.SecretKey, ci.UseSSL)
-	default:
-		log.Fatalf("Unsupported protocol version [%d]\n", ci.S3Version)
-	}
-
-	if err != nil {
-		return client, err
+	// Get Config
+	s3Config := &aws.Config{
+		Credentials:      credentials.NewStaticCredentials(ci.AccessKey, ci.SecretKey, ""),
+		Endpoint:         aws.String(ci.Endpoint),
+		Region:           aws.String("us-east-1"),
+		DisableSSL:       aws.Bool(!ci.UseSSL),
+		S3ForcePathStyle: aws.Bool(true), // reqired for minio server
 	}
 
 	if ci.Trace {
-		client.TraceOn(nil)
-	} else {
-		client.TraceOff()
+		s3Config.WithLogLevel(aws.LogDebugWithRequestErrors | aws.LogDebugWithHTTPBody | aws.LogDebugWithSigning | aws.LogDebugWithRequestRetries)
 	}
 
-	return client, nil
+	// Create Session
+	newSession, err := session.NewSession(s3Config)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create S3 Client
+	return s3.New(newSession), nil
 }
 
 func main() {
