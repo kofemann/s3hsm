@@ -238,8 +238,19 @@ func connect(ci *util.ConnectionParams) (*s3.S3, error) {
 		return nil, err
 	}
 
+	s3client := s3.New(newSession)
+
+	switch ci.S3Version {
+	case 2:
+		util.Setv2Handlers(s3client)
+	case 4:
+		// nop
+	default:
+		log.Fatalf("Unsupported protocol version [%d]\n", ci.S3Version)
+	}
+
 	// Create S3 Client
-	return s3.New(newSession), nil
+	return s3client, nil
 }
 
 func main() {
