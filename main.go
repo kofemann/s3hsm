@@ -6,12 +6,6 @@ import (
 	"crypto/cipher"
 	"encoding/hex"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	util "github.com/kofemann/s3hsm/util"
 	"io"
 	"log"
 	"math/rand"
@@ -19,6 +13,13 @@ import (
 	"os"
 	"path"
 	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	util "github.com/kofemann/s3hsm/util"
 )
 
 const DATA_MIME_TYPE = "binary/octet-stream"
@@ -238,8 +239,8 @@ func connect(ci *util.ConnectionParams) (*s3.S3, error) {
 		return nil, err
 	}
 
+	// Create S3 Client
 	s3client := s3.New(newSession)
-
 	switch ci.S3Version {
 	case 2:
 		util.Setv2Handlers(s3client)
@@ -249,7 +250,6 @@ func connect(ci *util.ConnectionParams) (*s3.S3, error) {
 		log.Fatalf("Unsupported protocol version [%d]\n", ci.S3Version)
 	}
 
-	// Create S3 Client
 	return s3client, nil
 }
 

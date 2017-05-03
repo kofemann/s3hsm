@@ -83,8 +83,7 @@ Building from sources
 =====================
 
 ```
-$ go get -u github.com/kofemann/s3hsm
-$ cd $GOPATH
+$ go get -u github.com/aws/aws-sdk-go/aws
 $ go build
 ```
 
