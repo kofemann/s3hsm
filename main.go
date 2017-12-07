@@ -224,7 +224,7 @@ func connect(ci *util.ConnectionParams) (*s3.S3, error) {
 	s3Config := &aws.Config{
 		Credentials:      credentials.NewStaticCredentials(ci.AccessKey, ci.SecretKey, ""),
 		Endpoint:         aws.String(ci.Endpoint),
-		Region:           aws.String("us-east-1"),
+		Region:           aws.String(ci.Region),
 		DisableSSL:       aws.Bool(!ci.UseSSL),
 		S3ForcePathStyle: aws.Bool(true), // reqired for minio server
 	}

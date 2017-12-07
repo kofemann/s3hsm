@@ -15,6 +15,7 @@ type Conf struct {
 
 type ConnectionParams struct {
 	Endpoint  string `yaml:"endpoint"`
+	Region    string `yaml:"region"`
 	AccessKey string `yaml:"access_key"`
 	SecretKey string `yaml:"secret_key"`
 	UseSSL    bool   `yaml:"ssl"`

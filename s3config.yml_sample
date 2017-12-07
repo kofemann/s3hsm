@@ -1,5 +1,6 @@
 s3:
   endpoint: 127.0.0.1:9000
+  region: us-east-1
   access_key: xxxxxxxxxxxxxxxx
   secret_key: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   ssl: false
