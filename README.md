@@ -84,7 +84,7 @@ Building from sources
 
 ```
 $ go get -u github.com/aws/aws-sdk-go/aws
-$ go build
+$ go build # or CGO_ENABLED=0 go build
 ```
 
 License:
