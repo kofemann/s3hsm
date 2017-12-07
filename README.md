@@ -7,19 +7,13 @@ Usage
  s3hsm - use S3 and HSM for dCache
 
 Usage:
-    $ s3hsm put <pnfsid> <path> [-key[=value]...]
-    $ s3hsm get <pnfsid> <path> -uri=<uri>[-key[=value]...]
-    $ s3hsm remove -uri=<uri> [-key[=value]...]
+    $ s3hsm put <pnfsid> <path>
+    $ s3hsm get <pnfsid> <path> -uri=<uri>
+    $ s3hsm remove -uri=<uri>
 
 Options:
     -debuglog=<filename>    : log debug informaion into specified file.
-    -s3config=<filename>    : path to is3 endpoint config file.
-    -s3endpoint=<host:port> : S3 endpoint's host and port
-    -s3usessl               : use https protocol when talking to S3 endpoint.
     -s3bucket=<bucket>      : name of S3 bucket to use.
-    -s3key=<key>            : S3 AccessKey, overwrites the value from config file.
-    -s3secret=<secret>      : S3 SecretAccessKey, overwrites the value from config file.
-    -enc                    : Encrypt data with a random key before sending to S3 storage.
 ```
 
 Flush file to s3
@@ -27,9 +21,7 @@ Flush file to s3
 ```
 $ s3hsm put 0000000635D5968A4DD89E29C242185B2D82 /dcache/pool1/0000000635D5968A4DD89E29C242185B2D82 \
     -s3bucket=data \
-    -s3key=ACCESS_KEY \
-    -s3secret=SECRET_KEY \
-    -s3endpoint=127.0.0.1:9000
+    -s3config=/path/to/config.yml
 ```
 The script will return back location uri:
 ```
@@ -40,11 +32,9 @@ Restore file from s3
 --------------------
 ```
 $ s3hsm get 0000000635D5968A4DD89E29C242185B2D82 /dcache/pool1/0000000635D5968A4DD89E29C242185B2D82 \
-    -uri=s3://data/0000000635D5968A4DD89E29C242185B2D82 \
     -s3bucket=data \
-    -s3key=ACCESS_KEY \
-    -s3secret=SECRET_KEY \
-    -s3endpoint=127.0.0.1:9000
+    -s3config=/path/to/config.yml
+    -uri=s3://data/0000000635D5968A4DD89E29C242185B2D82 \
 ```
 
 Remove file from s3
@@ -52,21 +42,14 @@ Remove file from s3
 ````
 $ s3hsm remove -uri=s3://data/0000000635D5968A4DD89E29C242185B2D82 \
     -s3bucket=data \
-    -s3key=ACCESS_KEY \
-    -s3secret=SECRET_KEY \
-    -s3endpoint=127.0.0.1:9000
+    -s3config=/path/to/config.yml
 ````
 
-To simplify command line usage, a config file with connection properties can be provides:
-```
-$ s3hsm put 0000000635D5968A4DD89E29C242185B2D82 /dcache/pool1/0000000635D5968A4DD89E29C242185B2D82 \
-    -s3bucket=data \
-    -s3config=/path/to/config.yml
-```
 The config file as a very simple format:
 ```yaml
 s3:
   endpoint: 127.0.0.1:9000
+  region: us-east-1
   access_key: ACCESS_KEY
   secret_key: SECRET_KEY
   ssl: false

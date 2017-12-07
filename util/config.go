@@ -5,7 +5,6 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
-	"strconv"
 )
 
 type Conf struct {
@@ -46,48 +45,6 @@ func GetConfig(opts map[string]string) *Conf {
 			log.Fatalf("Failed to parse config: %v\n", err)
 		}
 
-	}
-
-	params := conf.S3
-
-	// allow overwrite with option
-	_, ok = opts["s3endpoint"]
-	if ok {
-		params.Endpoint = opts["s3endpoint"]
-	}
-
-	_, ok = opts["s3key"]
-	if ok {
-		params.AccessKey = opts["s3key"]
-	}
-
-	_, ok = opts["s3secret"]
-	if ok {
-		params.SecretKey = opts["s3secret"]
-	}
-
-	_, ok = opts["s3usessl"]
-	if ok {
-		params.UseSSL = true
-	}
-
-	_, ok = opts["enc"]
-	if ok {
-		params.UseEnc = true
-	}
-
-	_, ok = opts["trace"]
-	if ok {
-		params.Trace = true
-	}
-
-	_, ok = opts["s3version"]
-	if ok {
-		version, err := strconv.ParseUint(opts["s3version"], 10, 8)
-		if err != nil {
-			log.Fatalf("Invalid value for s3version: %v\n", err)
-		}
-		params.S3Version = version
 	}
 
 	return conf
