@@ -45,7 +45,7 @@ func usageAndExit(app string, errcode int) {
 	os.Exit(errcode)
 }
 
-func doPut(ci *util.ConnectionParams, hsm *util.HsmInfo, objectName string, filePath string, opts map[string]string) {
+func doPut(ci *util.ConnectionParams, hsm *util.HsmInfo, objectName string, filePath string, bucketName string) {
 	s3client, err := connect(ci)
 	if err != nil {
 		log.Fatalln(err)
@@ -81,8 +81,6 @@ func doPut(ci *util.ConnectionParams, hsm *util.HsmInfo, objectName string, file
 		reader = inFile
 	}
 
-	bucketName := opts["s3bucket"]
-
 	uploader := s3manager.NewUploaderWithClient(s3client)
 
 	start := time.Now()
@@ -109,16 +107,11 @@ func doPut(ci *util.ConnectionParams, hsm *util.HsmInfo, objectName string, file
 	fmt.Println(u.String())
 }
 
-func doGet(ci *util.ConnectionParams, filePath string, opts map[string]string) {
+func doGet(ci *util.ConnectionParams, filePath string, s3uri string) {
 
 	s3client, err := connect(ci)
 	if err != nil {
 		log.Fatalln(err)
-	}
-
-	s3uri, ok := opts["uri"]
-	if !ok {
-		log.Fatalln("uri is missing")
 	}
 
 	u, err := url.Parse(s3uri)
@@ -180,16 +173,11 @@ func doGet(ci *util.ConnectionParams, filePath string, opts map[string]string) {
 	DEBUG.Printf("GET of %s done in %v\n", objectName, time.Since(start))
 }
 
-func doRemove(ci *util.ConnectionParams, opts map[string]string) {
+func doRemove(ci *util.ConnectionParams, s3uri string) {
 
 	s3client, err := connect(ci)
 	if err != nil {
 		log.Fatalln(err)
-	}
-
-	s3uri, ok := opts["uri"]
-	if !ok {
-		log.Fatalln("uri is missing")
 	}
 
 	u, err := url.Parse(s3uri)
@@ -268,17 +256,34 @@ func main() {
 		DEBUG.SetOutput(f)
 	}
 
-	config := util.GetConfig(opts)
+	configFile, ok := opts["s3config"]
+	if !ok {
+		usageAndExit(appName, 2)
+	}
+
+	config := util.GetConfig(configFile)
 	connectionInfo := &config.S3
 	hsmInfo := &config.Hsm
 
 	switch action {
 	case "get":
-		doGet(connectionInfo, os.Args[3], opts)
+		s3uri, ok := opts["uri"]
+		if !ok {
+			log.Fatalln("uri is missing")
+		}
+		doGet(connectionInfo, os.Args[3], s3uri)
 	case "put":
-		doPut(connectionInfo, hsmInfo, os.Args[2], os.Args[3], opts)
+		bucketName, ok := opts["s3bucket"]
+		if !ok {
+			log.Fatalln("s3bucket is missing")
+		}
+		doPut(connectionInfo, hsmInfo, os.Args[2], os.Args[3], bucketName)
 	case "remove":
-		doRemove(connectionInfo, opts)
+		s3uri, ok := opts["uri"]
+		if !ok {
+			log.Fatalln("uri is missing")
+		}
+		doRemove(connectionInfo, s3uri)
 	default:
 		usageAndExit(appName, 1)
 	}

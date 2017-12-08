@@ -2,9 +2,10 @@
 package util
 
 import (
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
+
+	"gopkg.in/yaml.v2"
 )
 
 type Conf struct {
@@ -28,23 +29,18 @@ type HsmInfo struct {
 	Type     string `yaml:"type"`
 }
 
-func GetConfig(opts map[string]string) *Conf {
+func GetConfig(file string) *Conf {
 
 	conf := &Conf{}
 
-	// use config file if provided
-	file, ok := opts["s3config"]
-	if ok {
-		yamlFile, err := ioutil.ReadFile(file)
-		if err != nil {
-			log.Fatalf("Failed to read config file: %v\n", err)
-		}
+	yamlFile, err := ioutil.ReadFile(file)
+	if err != nil {
+		log.Fatalf("Failed to read config file: %v\n", err)
+	}
 
-		err = yaml.Unmarshal(yamlFile, conf)
-		if err != nil {
-			log.Fatalf("Failed to parse config: %v\n", err)
-		}
-
+	err = yaml.Unmarshal(yamlFile, conf)
+	if err != nil {
+		log.Fatalf("Failed to parse config: %v\n", err)
 	}
 
 	return conf
