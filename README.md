@@ -12,7 +12,7 @@ Usage:
     $ s3hsm remove -uri=<uri>
 
 Options:
-    -debuglog=<filename>    : log debug informaion into specified file.
+    -debuglog=<filename>    : log debug information into specified file.
     -s3bucket=<bucket>      : name of S3 bucket to use.
 ```
 
@@ -69,6 +69,12 @@ Building from sources
 $ go get -u github.com/aws/aws-sdk-go/aws
 $ go build # or CGO_ENABLED=0 go build
 ```
+
+Fault injection
+===============
+
+In some situation a simulating of error conditions is required.
+There are two options to inject such behavior: _sleep_ , to simulate tape mount delay, and _fault_ to force application to fail with specified error code.
 
 License:
 --------

@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -38,10 +39,13 @@ func usageAndExit(app string, errcode int) {
 	fmt.Printf("    $ %s remove -uri=<uri>\n", app)
 	fmt.Println()
 	fmt.Println("Options:")
-	fmt.Println("    -debuglog=<filename>    : log debug informaion into specified file.")
+	fmt.Println("    -debuglog=<filename>    : log debug information into specified file.")
 	fmt.Println("    -s3bucket=<bucket>      : name of S3 bucket to use.")
 	fmt.Println("    -s3config=<filename>    : path to s3 endpoint config file.")
-
+	fmt.Println()
+	fmt.Println("HSM fault injection:")
+	fmt.Println("    -sleep=<seconds>        : delay request by specified seconds.")
+	fmt.Println("    -fault=<error>          : fail request with specified error code")
 	os.Exit(errcode)
 }
 
@@ -264,6 +268,27 @@ func main() {
 	config := util.GetConfig(configFile)
 	connectionInfo := &config.S3
 	hsmInfo := &config.Hsm
+
+	// fault injections: inject errors and delays
+
+	s, ok := opts["sleep"]
+	if ok {
+		t, err := strconv.Atoi(s)
+		if err != nil {
+			log.Fatalf("Bad value for sleep: %v\n", err)
+		}
+		time.Sleep(time.Duration(t) * time.Second)
+	}
+
+	s, ok = opts["fail"]
+	if ok {
+		rc, err := strconv.Atoi(s)
+		if err != nil {
+			log.Fatalf("Bad value for sleep: %v\n", err)
+		}
+		DEBUG.Printf("failure injection: error code %d\n", rc)
+		os.Exit(rc)
+	}
 
 	switch action {
 	case "get":
