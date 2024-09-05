@@ -4,11 +4,11 @@ package main
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
 	"encoding/hex"
 	"fmt"
 	"io"
 	"log"
-	"math/rand"
 	"net/url"
 	"os"
 	"path"
@@ -65,7 +65,6 @@ func doPut(ci *util.ConnectionParams, hsm *util.HsmInfo, objectName string, file
 	defer inFile.Close()
 
 	if ci.UseEnc {
-		rand.Seed(time.Now().UnixNano())
 		key = make([]byte, KEY_SIZE)
 		_, err = rand.Read(key)
 		if err != nil {

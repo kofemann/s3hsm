@@ -2,8 +2,8 @@
 package util
 
 import (
-	"io/ioutil"
 	"log"
+	"os"
 
 	"gopkg.in/yaml.v2"
 )
@@ -33,7 +33,7 @@ func GetConfig(file string) *Conf {
 
 	conf := &Conf{}
 
-	yamlFile, err := ioutil.ReadFile(file)
+	yamlFile, err := os.ReadFile(file)
 	if err != nil {
 		log.Fatalf("Failed to read config file: %v\n", err)
 	}
